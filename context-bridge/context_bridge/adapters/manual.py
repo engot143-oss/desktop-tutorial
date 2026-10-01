@@ -167,28 +167,37 @@ def write_manual_packet(
     json_path = out_dir / f"{base}.json"
     md_path = out_dir / f"{base}.md"
 
+    # CB-005: scrub ALL packet metadata surfaces (project/task/version/error class)
+    sp = scrub_text(ctx.project)
+    st = scrub_text(ctx.current_task_id or "")
+    sv = scrub_text(ctx.current_version)
+    sec = scrub_text(error_class or "(n/a)")
+    sem = scrub_text(error_message or "")
     md_lines = [
-        f"# Manual packet — {ctx.current_task_id} for {recipient_label}",
+        f"# Manual packet — {st} for {recipient_label}",
         "",
         f"**Status:** `awaiting_execution`",
         f"**Connection:** `{connection_status.value}` "
         f"({'no live link' if connection_status == ConnectionStatus.UNAVAILABLE else 'attempted live call failed'})",
-        f"**Worker:** {worker}",
+        f"**Worker:** {scrub_text(worker)}",
         f"**Adapter:** manual",
-        f"**Error class:** {error_class or '(n/a)'}",
-        f"**Error message:** {scrub_text(error_message or '')}",
+        f"**Project:** {sp}",
+        f"**Task ID:** {st}",
+        f"**Version:** {sv}",
+        f"**Error class:** {sec}",
+        f"**Error message:** {sem}",
         "",
         "## Instructions",
         scrub_text(instr),
         "",
         "## Handoff (scrubbed)",
         "",
-        scrub_text(md_body),
+        md_body,  # already scrubbed by render_markdown
         "",
         "---",
         "After execution, return a Result Markdown and run:",
-        f'`cb import-result "{ctx.project}" path/to/result.md '
-        f'--task-id {ctx.current_task_id} --based-on-version {ctx.current_version}`',
+        f'`cb import-result "{sp}" path/to/result.md '
+        f'--task-id {st} --based-on-version {sv}`',
         "",
     ]
     md_path.write_text("\n".join(md_lines), encoding="utf-8")

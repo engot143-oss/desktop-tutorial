@@ -19,8 +19,10 @@ class GlowPlan:
     constraints: list[str] = field(default_factory=list)
     open_questions: list[str] = field(default_factory=list)
     who_gets_what_next: dict[str, str] = field(default_factory=dict)
-    # Exact section bodies (no surrounding strip) for round-trip fidelity (CB-004)
+    # Exact section bodies (no surrounding strip) for round-trip fidelity (CB-004/005)
     raw_sections: dict[str, str] = field(default_factory=dict)
+    # Original line ending preserved for CRLF documents (CB-005)
+    line_ending: str = "\n"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -39,12 +41,16 @@ class GlowPlan:
             for k, v in dict(data.get("raw_sections") or {}).items()
             if isinstance(v, str)
         }
+        le = data.get("line_ending") or "\n"
+        if le not in ("\n", "\r\n"):
+            le = "\n"
         return cls(
             goal=data.get("goal", "") or "",
             constraints=list(data.get("constraints") or []),
             open_questions=list(data.get("open_questions") or []),
             who_gets_what_next=who,
             raw_sections=raw_sections,
+            line_ending=le,
         )
 
 

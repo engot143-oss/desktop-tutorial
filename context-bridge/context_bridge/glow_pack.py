@@ -137,7 +137,7 @@ def render_glow_return_markdown(pack: dict[str, Any]) -> str:
     if flags:
         for f in flags:
             lines.append(
-                f"- **[{f.get('type', 'flag')}]** {scrub_text(str(f.get('message', '')))}"
+                f"- **[{scrub_text(str(f.get('type', 'flag')))}]** {scrub_text(str(f.get('message', '')))}"
             )
     else:
         lines.append("- (none)")
