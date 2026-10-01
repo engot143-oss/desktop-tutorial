@@ -1,0 +1,2 @@
+Initialized project 'Ops Flow Demo' at /workspace/context-bridge/data/projects/ops-flow-demo
+  context: /workspace/context-bridge/data/projects/ops-flow-demo/context.json

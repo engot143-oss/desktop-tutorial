@@ -1,0 +1,5 @@
+Imported Glow plan into 'Sample Widget API'
+  task_id=SAMPLE-001 version=1.0.0
+  decisions=3 assumptions=2
+  goal: Ship a minimal read-only Widget API stub that returns a hard-coded list of widge...
+  sections OK: Goal / Constraints / Open questions / Who gets what next

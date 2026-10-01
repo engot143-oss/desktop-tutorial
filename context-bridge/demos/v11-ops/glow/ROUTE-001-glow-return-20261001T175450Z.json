@@ -1,0 +1,48 @@
+{
+  "pack_type": "glow_return",
+  "project": "Ops Flow Demo",
+  "task_id": "ROUTE-001",
+  "based_on_version": "1.1.0",
+  "project_version": "1.1.0",
+  "date": "2026-10-01",
+  "repo_path": "/workspace/context-bridge",
+  "findings": [
+    "Verified route + manual packet path for v1.1."
+  ],
+  "verification_evidence": [
+    "scripts/demo_v11_ops.sh green"
+  ],
+  "blockers": [
+    "None."
+  ],
+  "next_action": "Glow checks return pack and assigns next step.",
+  "decisions": [
+    "Claude = coding default; Grok = explore / second opinion.",
+    "Glow override beats defaults.",
+    "Ops loop stays CLI-authoritative; live adapters deferred until Eric authorizes."
+  ],
+  "assumptions": [
+    "Manual paste until Eric authorizes live connections."
+  ],
+  "open_flags": [
+    {
+      "type": "connection_unavailable",
+      "at": "2026-10-01T17:54:50Z",
+      "message": "claude: connection_unavailable \u2014 No authorized live connection; manual paste packet prepared. (packet: /workspace/context-bridge/demos/v11-ops/packets/ROUTE-001-claude-packet-20261001T175450Z.md)",
+      "handoff_id": "ROUTE-001",
+      "worker": "claude",
+      "packet_path": "/workspace/context-bridge/demos/v11-ops/packets/ROUTE-001-claude-packet-20261001T175450Z.md",
+      "error_class": "connection_unavailable"
+    }
+  ],
+  "flag_summary": {
+    "conflict": 0,
+    "outdated": 0,
+    "missing_evidence": 0,
+    "failed_call": 0,
+    "connection_unavailable": 1,
+    "other": 0
+  },
+  "hierarchy": "Eric \u2192 Glow \u2192 Grok Bot (execution) \u2192 Claude (coding) / Grok (explore)",
+  "credentials_included": false
+}

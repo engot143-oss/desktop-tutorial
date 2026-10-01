@@ -1,0 +1,233 @@
+=== CB-003 v1.1.0 verification capture ===
+Date (PT): 2026-10-01 09:42:04 PDT
+Version: Context Bridge 1.1.0
+PWD: /workspace/context-bridge
+
+========== 1) UNIT TESTS ==========
+test_completion_criteria_not_in_task_list (tests.test_result_import_official.N1N2SmokeTests.test_completion_criteria_not_in_task_list) ... ok
+test_credentials_included_not_in_who (tests.test_result_import_official.N1N2SmokeTests.test_credentials_included_not_in_who) ... ok
+test_cli_fallbacks_set_task_id_and_version (tests.test_result_import_official.OfficialResultImportTests.test_cli_fallbacks_set_task_id_and_version)
+B1: --task-id / --based-on-version enable checks without a meta table. ... ok
+test_load_result_direct (tests.test_result_import_official.OfficialResultImportTests.test_load_result_direct) ... ok
+test_parse_decisions_and_full_next_action (tests.test_result_import_official.OfficialResultImportTests.test_parse_decisions_and_full_next_action) ... ok
+test_glow_pack_fields (tests.test_v11_slices.GlowPackTests.test_glow_pack_fields) ... ok
+test_missing_evidence_flag_on_pack (tests.test_v11_slices.GlowPackTests.test_missing_evidence_flag_on_pack) ... ok
+test_failed_call_distinct_from_unavailable (tests.test_v11_slices.ManualPacketTests.test_failed_call_distinct_from_unavailable) ... ok
+test_unavailable_packet (tests.test_v11_slices.ManualPacketTests.test_unavailable_packet) ... ok
+test_ops_loop (tests.test_v11_slices.OpsFlowCliTests.test_ops_loop) ... ok
+test_both_workers_ambiguous_without_role (tests.test_v11_slices.RouteTests.test_both_workers_ambiguous_without_role) ... ok
+test_cli_route_override (tests.test_v11_slices.RouteTests.test_cli_route_override) ... ok
+test_glow_override_wins (tests.test_v11_slices.RouteTests.test_glow_override_wins) ... ok
+test_role_coding_selects_claude (tests.test_v11_slices.RouteTests.test_role_coding_selects_claude) ... ok
+test_role_explore_selects_grok (tests.test_v11_slices.RouteTests.test_role_explore_selects_grok) ... ok
+test_sole_claude (tests.test_v11_slices.RouteTests.test_sole_claude) ... ok
+test_free_text_patterns (tests.test_v11_slices.ScrubTests.test_free_text_patterns) ... ok
+test_nested_keys_root_flag_only (tests.test_v11_slices.ScrubTests.test_nested_keys_root_flag_only) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.040s
+
+OK
+Imported result from Claude
+  task_id=CB-001 based_on=1.0.0
+  changes=3 evidence=5
+  blockers=2
+  new_decisions=4
+  next_action: Grok Bot: fix B1 and B2. Add a regression test that imports the official Result template and asserts new decisions, task ID, and the full next action are captur
+  decisions now: 5 (earlier decisions preserved)
+  FLAGS (1):
+    [outdated] Result based on version 1.0.0 but project is at 1.0.1.
+Glow return pack:
+  markdown: /tmp/cb-reg-zbeo44is/projects/regression-project/glow_returns/CB-001-glow-return-20261001T164204Z.md
+  json:     /tmp/cb-reg-zbeo44is/projects/regression-project/glow_returns/CB-001-glow-return-20261001T164204Z.json
+  open_flags=1 summary={'conflict': 0, 'outdated': 1, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}
+Initialized project 'Ops Demo' at /tmp/cb-ops-_aaq4n1i/projects/ops-demo
+  context: /tmp/cb-ops-_aaq4n1i/projects/ops-demo/context.json
+Imported Glow plan into 'Ops Demo'
+  task_id=ROUTE-001 version=1.1.0
+  decisions=2 assumptions=1
+  goal: Demonstrate Claude vs Grok routing from Who gets what next with Glow override....
+  sections OK: Goal / Constraints / Open questions / Who gets what next
+route status: clarify
+worker: (none — clarification required)
+reason: Both Claude and Grok are assigned. Pass --role coding|explore or --override claude|grok (Glow override wins).
+candidates:
+  - claude: Implement the router CLI and coding fixes for Context Bridge.
+  - grok: Explore alternative routing heuristics and give a second opinion.
+route status: ok
+worker: claude
+reason: Glow override → claude (task ROUTE-001)
+candidates:
+  - claude: Implement the router CLI and coding fixes for Context Bridge.
+  - grok: Explore alternative routing heuristics and give a second opinion.
+Manual packet for claude
+  status: awaiting_execution
+  underlying connection: unavailable
+  error_class: connection_unavailable
+  packet: /tmp/cb-ops-_aaq4n1i/packets/ROUTE-001-claude-packet-20261001T164204Z.md
+  message: Manual packet ready (awaiting_execution). Underlying: unavailable. Paste to claude, then import-result.
+Imported result from Claude
+  task_id=ROUTE-001 based_on=1.1.0
+  changes=1 evidence=1
+  blockers=1
+  new_decisions=1
+  next_action: Glow reviews return pack.
+  decisions now: 3 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /tmp/cb-ops-_aaq4n1i/glow/ROUTE-001-glow-return-20261001T164204Z.md
+  json:     /tmp/cb-ops-_aaq4n1i/glow/ROUTE-001-glow-return-20261001T164204Z.json
+  open_flags=1 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 1, 'other': 0}
+route status: ok
+worker: claude
+reason: Glow override → claude (task ROUTE-001)
+candidates:
+  - claude: Implement the router CLI and coding fixes for Context Bridge.
+  - grok: Explore alternative routing heuristics and give a second opinion.
+
+UNIT_TEST_EXIT=0
+
+========== 2) DEMO ROUND TRIP ==========
+=== 1. Init project ===
+Initialized project 'Sample Widget API' at /workspace/context-bridge/data/projects/sample-widget-api
+  context: /workspace/context-bridge/data/projects/sample-widget-api/context.json
+=== 2. Validate + import Glow plan ===
+VALID Glow plan
+  goal length: 99
+  constraints: 5
+  open_questions: 1
+  who_gets_what_next: ['Claude', 'Grok Bot', 'Enrique']
+  meta: {'project': 'Sample Widget API', 'task_id': 'SAMPLE-001', 'version': '1.0.0', 'repo_path': None, 'source': 'Glow (sample)'}
+  decisions: 3 assumptions: 2 assigned: 2
+Imported Glow plan into 'Sample Widget API'
+  task_id=SAMPLE-001 version=1.0.0
+  decisions=3 assumptions=2
+  goal: Ship a minimal read-only Widget API stub that returns a hard-coded list of widge...
+  sections OK: Goal / Constraints / Open questions / Who gets what next
+=== 3. Export for Claude and Grok Bot ===
+Exported handoff for Claude
+  markdown: /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-claude-v1.0.0.md
+  json:     /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-claude-v1.0.0.json
+  task=SAMPLE-001 version=1.0.0 decisions=3
+Exported handoff for Grok Bot
+  markdown: /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-grok-bot-v1.0.0.md
+  json:     /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-grok-bot-v1.0.0.json
+  task=SAMPLE-001 version=1.0.0 decisions=3
+=== 4. Prove four sections survived in Claude export ===
+PASS: four Glow sections + sample goal + decisions present in /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-claude-v1.0.0.md
+=== 5. Re-import exported Markdown (round-trip fidelity) ===
+Initialized project 'Sample Roundtrip Check' at /workspace/context-bridge/data/projects/sample-roundtrip-check
+  context: /workspace/context-bridge/data/projects/sample-roundtrip-check/context.json
+Imported Glow plan into 'Sample Roundtrip Check'
+  task_id=SAMPLE-001 version=1.0.0
+  decisions=3 assumptions=2
+  goal: Ship a minimal read-only Widget API stub that returns a hard-coded list of widge...
+  sections OK: Goal / Constraints / Open questions / Who gets what next
+PASS: exported Markdown re-imported; goal/constraints/who/decisions intact
+=== 6. Import result into live sample project ===
+Imported result from Grok Bot
+  task_id=SAMPLE-001 based_on=1.0.0
+  changes=3 evidence=3
+  blockers=1
+  new_decisions=1
+  next_action: Claude reviews the exported brief; Enrique optionally names a target folder/repo.
+  decisions now: 4 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T164205Z.md
+  json:     /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T164205Z.json
+  open_flags=0 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}
+=== 7. Follow-up update — decisions must survive ===
+Imported result from Grok Bot
+  task_id=SAMPLE-001 based_on=1.0.0
+  changes=2 evidence=2
+  blockers=1
+  new_decisions=1
+  next_action: Mark round-trip demo complete and write implementation report.
+  decisions now: 5 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T164205Z.md
+  json:     /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T164205Z.json
+  open_flags=0 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}
+PASS: all 5 decisions present (had 4 before follow-up); history snapshotted
+=== 8. Outdated + conflicting result should flag ===
+Imported result from External Agent
+  task_id=SAMPLE-001 based_on=0.9.0
+  changes=1 evidence=1
+  blockers=1
+  new_decisions=1
+  next_action: Re-export current handoff and re-run against version 1.0.0.
+  decisions now: 6 (earlier decisions preserved)
+  FLAGS (2):
+    [outdated] Result based on version 0.9.0 but project is at 1.0.0.
+    [conflict] New decision may conflict with existing: NEW «No local-only constraint — allow remote connectors instead of local-only.» vs EXISTING «v1 is local-only.»
+Glow return pack:
+  markdown: /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T164205Z.md
+  json:     /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T164205Z.json
+  open_flags=2 summary={'conflict': 1, 'outdated': 1, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}
+PASS: outdated + conflict flags raised; earlier decisions still preserved
+Flags:
+  [outdated] Result based on version 0.9.0 but project is at 1.0.0.
+  [conflict] New decision may conflict with existing: NEW «No local-only constraint — allow remote connectors instead of local-only.» vs EXISTING «v1 is local-only.»
+
+=== ROUND TRIP DEMO SUCCEEDED ===
+Artifacts: /workspace/context-bridge/demos/sample-round-trip
+
+DEMO_ROUND_TRIP_EXIT=0
+
+========== 3) DEMO V1.1 OPS ==========
+=== receive (import Glow plan) ===
+Initialized project 'Ops Flow Demo' at /workspace/context-bridge/data/projects/ops-flow-demo
+  context: /workspace/context-bridge/data/projects/ops-flow-demo/context.json
+Imported Glow plan into 'Ops Flow Demo'
+  task_id=ROUTE-001 version=1.1.0
+  decisions=2 assumptions=1
+  goal: Demonstrate Claude vs Grok routing from Who gets what next with Glow override....
+  sections OK: Goal / Constraints / Open questions / Who gets what next
+=== route (ambiguous then Glow override) ===
+route status: clarify
+worker: (none — clarification required)
+reason: Both Claude and Grok are assigned. Pass --role coding|explore or --override claude|grok (Glow override wins).
+candidates:
+  - claude: Implement the router CLI and coding fixes for Context Bridge.
+  - grok: Explore alternative routing heuristics and give a second opinion.
+route status: ok
+worker: claude
+reason: Glow override → claude (task ROUTE-001)
+candidates:
+  - claude: Implement the router CLI and coding fixes for Context Bridge.
+  - grok: Explore alternative routing heuristics and give a second opinion.
+=== packet (manual awaiting_execution) ===
+Manual packet for claude
+  status: awaiting_execution
+  underlying connection: unavailable
+  error_class: connection_unavailable
+  packet: /workspace/context-bridge/demos/v11-ops/packets/ROUTE-001-claude-packet-20261001T164205Z.md
+  message: Manual packet ready (awaiting_execution). Underlying: unavailable. Paste to claude, then import-result.
+=== import worker result → Glow return ===
+Imported result from Claude
+  task_id=ROUTE-001 based_on=1.1.0
+  changes=1 evidence=1
+  blockers=1
+  new_decisions=1
+  next_action: Glow checks return pack and assigns next step.
+  decisions now: 3 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /workspace/context-bridge/demos/v11-ops/glow/ROUTE-001-glow-return-20261001T164205Z.md
+  json:     /workspace/context-bridge/demos/v11-ops/glow/ROUTE-001-glow-return-20261001T164205Z.json
+  open_flags=1 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 1, 'other': 0}
+PASS: Glow return pack + awaiting_execution packet OK
+decisions: 3 flags: 1
+
+=== V1.1 OPS DEMO SUCCEEDED ===
+Artifacts: /workspace/context-bridge/demos/v11-ops
+
+DEMO_V11_OPS_EXIT=0
+
+========== SUMMARY ==========
+UNIT_TEST_EXIT=0
+DEMO_ROUND_TRIP_EXIT=0
+DEMO_V11_OPS_EXIT=0
+ALL_THREE_SUCCEEDED=YES

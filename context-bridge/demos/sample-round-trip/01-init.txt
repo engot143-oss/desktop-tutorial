@@ -1,0 +1,2 @@
+Initialized project 'Sample Widget API' at /workspace/context-bridge/data/projects/sample-widget-api
+  context: /workspace/context-bridge/data/projects/sample-widget-api/context.json

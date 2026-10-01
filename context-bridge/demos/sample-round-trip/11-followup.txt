@@ -1,0 +1,12 @@
+Imported result from Grok Bot
+  task_id=SAMPLE-001 based_on=1.0.0
+  changes=2 evidence=2
+  blockers=1
+  new_decisions=1
+  next_action: Mark round-trip demo complete and write implementation report.
+  decisions now: 5 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T175449Z.md
+  json:     /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T175449Z.json
+  open_flags=0 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}

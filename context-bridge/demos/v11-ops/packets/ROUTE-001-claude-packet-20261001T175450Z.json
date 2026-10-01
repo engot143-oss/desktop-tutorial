@@ -1,0 +1,77 @@
+{
+  "packet_type": "manual_worker_packet",
+  "status": "awaiting_execution",
+  "connection": "unavailable",
+  "worker": "claude",
+  "adapter": "manual",
+  "project": "Ops Flow Demo",
+  "task_id": "ROUTE-001",
+  "version": "1.1.0",
+  "repo_path": "/workspace/context-bridge",
+  "date": "2026-10-01",
+  "error_class": "connection_unavailable",
+  "error_message": "No authorized live connection; manual paste packet prepared.",
+  "instructions": "You are the Claude worker under hierarchy Eric \u2192 Glow \u2192 Grok Bot \u2192 Claude (coding) / Grok (explore).\nExecute the assigned work. Return a Result using the official format:\nChanges / Verification evidence / Blockers / Next action / Decisions.\nPaste the Result back for `cb import-result`.",
+  "decisions": [
+    "Claude = coding default; Grok = explore / second opinion.",
+    "Glow override beats defaults."
+  ],
+  "assumptions": [
+    "Manual paste until Eric authorizes live connections."
+  ],
+  "open_flags": [],
+  "handoff": {
+    "handoff_id": "ROUTE-001",
+    "project": "Ops Flow Demo",
+    "version": "1.1.0",
+    "recipient": "Claude",
+    "date": "2026-10-01",
+    "source": "Context Bridge manual adapter",
+    "repo_path": "/workspace/context-bridge",
+    "glow_plan": {
+      "goal": "Demonstrate Claude vs Grok routing from Who gets what next with Glow override.\n",
+      "constraints": [
+        "Local-only; manual paste adapters first.",
+        "Preserve four sections exactly.",
+        "No credentials in handoffs."
+      ],
+      "open_questions": [
+        "None blocking for the routing demo."
+      ],
+      "who_gets_what_next": {
+        "Claude": "Implement the router CLI and coding fixes for Context Bridge.",
+        "Grok": "Explore alternative routing heuristics and give a second opinion.",
+        "Grok Bot": "Orchestrate execution; do not replace Claude/Grok workers.",
+        "Glow": "Override worker assignment when needed.",
+        "Eric": "Approve scope."
+      },
+      "raw_sections": {
+        "goal": "Demonstrate Claude vs Grok routing from Who gets what next with Glow override.\n",
+        "constraints": "- Local-only; manual paste adapters first.\n- Preserve four sections exactly.\n- No credentials in handoffs.\n",
+        "open_questions": "- None blocking for the routing demo.\n",
+        "who_gets_what_next": "- **Claude:** Implement the router CLI and coding fixes for Context Bridge.\n- **Grok:** Explore alternative routing heuristics and give a second opinion.\n- **Grok Bot:** Orchestrate execution; do not replace Claude/Grok workers.\n- **Glow:** Override worker assignment when needed.\n- **Eric:** Approve scope.\n"
+      }
+    },
+    "decisions": [
+      "Claude = coding default; Grok = explore / second opinion.",
+      "Glow override beats defaults."
+    ],
+    "assumptions": [
+      "Manual paste until Eric authorizes live connections."
+    ],
+    "assigned_tasks": [
+      {
+        "assignee": "Claude",
+        "tasks": [
+          "Implement route CLI."
+        ],
+        "completion_criteria": "route prints worker + reason; ambiguous returns clarify."
+      }
+    ],
+    "next_action": "Implement the router CLI and coding fixes for Context Bridge.",
+    "flags": []
+  },
+  "live_adapter_ready": false,
+  "live_adapter_notes": "Live Claude/Grok connections are out of scope until Eric authorizes. This packet shape is stable for future live adapters to fill.",
+  "credentials_included": false
+}

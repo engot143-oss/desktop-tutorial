@@ -1,0 +1,4 @@
+PASS: outdated + conflict flags raised; earlier decisions still preserved
+Flags:
+  [outdated] Result based on version 0.9.0 but project is at 1.0.0.
+  [conflict] New decision may conflict with existing: NEW «No local-only constraint — allow remote connectors instead of local-only.» vs EXISTING «v1 is local-only.»

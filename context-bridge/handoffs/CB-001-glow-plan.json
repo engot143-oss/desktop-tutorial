@@ -1,0 +1,70 @@
+{
+  "handoff_id": "CB-001",
+  "project": "Context Bridge",
+  "version": "1.0.0",
+  "date": "2026-10-01",
+  "source": "Glow (via Enrique paste)",
+  "repo_path": null,
+  "credentials_included": false,
+  "glow_plan": {
+    "goal": "Build Context Bridge v1 to carry Glow’s engineering plans to Claude and return results without losing decisions or project context.",
+    "constraints": [
+      "Start locally with manual paste/import and Markdown + JSON export.",
+      "Preserve Glow’s four-section plan exactly.",
+      "Each handoff records project, repo/path, task ID, version, decisions, assumptions, assigned tasks, and completion criteria.",
+      "Keep credentials out of handoffs. No automatic sending, deployment, or repo changes in v1.",
+      "No deadline specified."
+    ],
+    "open_questions": [],
+    "who_gets_what_next": {
+      "Claude": "Review Grok Bot’s implementation. Verify a sample plan survives export/import and follow-up updates preserve earlier decisions.",
+      "Grok Bot / Context Bridge": "Build plan import, saved project context, recipient-specific handoff export, and result import. Results must include changes, verification evidence, blockers, and next action. Flag conflicting or outdated updates. Deliver working code, setup README, and one demonstrated round trip.",
+      "Enrique": "Paste this specification to Grok Bot and bring its implementation report back to Glow for review."
+    }
+  },
+  "decisions": [
+    "Domain default: engineering.",
+    "Context Bridge packages plans; Grok Bot owns v1 implementation.",
+    "Claude reviews after demonstrated round trip.",
+    "v1 is local-only."
+  ],
+  "assumptions": [
+    "Standalone until Enrique supplies target folder/repo.",
+    "Claude may be external; no Claude teammate connected yet.",
+    "Four-section Glow shape is canonical plan schema."
+  ],
+  "assigned_tasks": [
+    {
+      "assignee": "Grok Bot",
+      "tasks": [
+        "Plan import",
+        "Saved project context",
+        "Recipient-specific handoff export (Markdown + JSON)",
+        "Result import with changes, verification, blockers, next action",
+        "Flag conflicting or outdated updates",
+        "Working code, setup README, demonstrated round trip"
+      ],
+      "completion_criteria": "Sample Glow plan imports, exports for Claude and Grok Bot, result imports back, decisions survive follow-up update; README covers setup and demo."
+    },
+    {
+      "assignee": "Claude",
+      "tasks": [
+        "Review implementation",
+        "Verify export/import fidelity",
+        "Verify decision preservation on updates"
+      ],
+      "completion_criteria": "Written review with pass/fail on round-trip fidelity and decision preservation.",
+      "blocked_until": "Grok Bot implementation report"
+    },
+    {
+      "assignee": "Context Bridge",
+      "tasks": [
+        "Maintain handoff record",
+        "Refresh recipient briefs on updates",
+        "Flag conflicts when results return"
+      ],
+      "completion_criteria": "Handoffs CB-001 packaged and delivered; Claude brief ready when build lands."
+    }
+  ],
+  "next_action": "Grok Bot starts CB-001 build."
+}

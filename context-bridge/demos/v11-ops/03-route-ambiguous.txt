@@ -1,0 +1,6 @@
+route status: clarify
+worker: (none — clarification required)
+reason: Both Claude and Grok are assigned. Pass --role coding|explore or --override claude|grok (Glow override wins).
+candidates:
+  - claude: Implement the router CLI and coding fixes for Context Bridge.
+  - grok: Explore alternative routing heuristics and give a second opinion.

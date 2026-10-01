@@ -1,0 +1,14 @@
+Imported result from External Agent
+  task_id=SAMPLE-001 based_on=0.9.0
+  changes=1 evidence=1
+  blockers=1
+  new_decisions=1
+  next_action: Re-export current handoff and re-run against version 1.0.0.
+  decisions now: 6 (earlier decisions preserved)
+  FLAGS (2):
+    [outdated] Result based on version 0.9.0 but project is at 1.0.0.
+    [conflict] New decision may conflict with existing: NEW «No local-only constraint — allow remote connectors instead of local-only.» vs EXISTING «v1 is local-only.»
+Glow return pack:
+  markdown: /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T175449Z.md
+  json:     /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T175449Z.json
+  open_flags=2 summary={'conflict': 1, 'outdated': 1, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}

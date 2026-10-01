@@ -1,0 +1,4 @@
+Exported handoff for Claude
+  markdown: /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-claude-v1.0.0.md
+  json:     /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-claude-v1.0.0.json
+  task=SAMPLE-001 version=1.0.0 decisions=3
