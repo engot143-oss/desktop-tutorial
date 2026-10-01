@@ -245,7 +245,11 @@ class ScrubTests(unittest.TestCase):
         )
         self.assertEqual(obj["credentials_included"], False)
         self.assertNotIn("credentials_included", obj["who_gets_what_next"])
-        self.assertEqual(obj["who_gets_what_next"]["password"], "[REDACTED]")
+        # CB-005: credential-named keys are renamed to [REDACTED_KEY]
+        who = obj["who_gets_what_next"]
+        self.assertNotIn("password", who)
+        self.assertIn("[REDACTED_KEY]", who)
+        self.assertEqual(who["[REDACTED_KEY]"], "[REDACTED]")
         self.assertNotIn("visible-secret", obj["note"])
 
 

@@ -7,12 +7,12 @@ from pathlib import Path
 
 from .models import AssignedTask, GlowPlan, ProjectContext, utc_now_iso
 
-# Exact canonical titles (match case-insensitively; no aliases / endswith)
-CANONICAL_TITLES: dict[str, str] = {
-    "goal": "goal",
-    "constraints": "constraints",
-    "open questions": "open_questions",
-    "who gets what next": "who_gets_what_next",
+# Literal titles only (exact characters — CB-005). Keys are section ids.
+EXACT_TITLES: dict[str, str] = {
+    "Goal": "goal",
+    "Constraints": "constraints",
+    "Open questions": "open_questions",
+    "Who gets what next": "who_gets_what_next",
 }
 
 REQUIRED_SECTIONS = ("goal", "constraints", "open_questions", "who_gets_what_next")
@@ -23,20 +23,8 @@ REQUIRED_TITLE_LABELS = (
     "Who gets what next",
 )
 
-
-class PlanImportError(ValueError):
-    pass
-
-
-def _normalize_heading(text: str) -> str:
-    t = text.strip().lower()
-    t = re.sub(r"^#+\s*", "", t)
-    t = re.sub(r"^\*+\s*|\s*\*+$", "", t)
-    t = re.sub(r"^_+\s*|\s*_+$", "", t)
-    return t.strip()
-
-
-# Headings that end a Glow section body (companion / handoff chrome)
+# Companion / chrome headings that end a Glow section — only at structural
+# level # or ## (not nested #### inside a body).
 STOP_HEADINGS = {
     "decisions",
     "assumptions",
@@ -57,38 +45,74 @@ STOP_HEADINGS = {
 }
 
 
-def _exact_glow_key(title_normalized: str) -> str | None:
-    """Return section key only for exact canonical titles (no endswith / fuzzy)."""
-    return CANONICAL_TITLES.get(title_normalized)
+class PlanImportError(ValueError):
+    pass
 
 
-def _split_sections(markdown: str) -> tuple[dict[str, str], str, list[str]]:
+def _detect_line_ending(text: str) -> str:
+    if "\r\n" in text:
+        return "\r\n"
+    return "\n"
+
+
+def _split_lines(text: str, ending: str) -> list[str]:
+    """Split text on ending without converting CRLF→LF in body content."""
+    if ending == "\r\n":
+        # Also handle any lone \n defensively by normalizing only for split of
+        # mixed docs: prefer preserving CRLF segments.
+        return text.split("\r\n")
+    return text.split("\n")
+
+
+def _normalize_heading_for_stop(text: str) -> str:
+    """Lowercase normalize for companion stop matching only."""
+    t = text.strip().lower()
+    t = re.sub(r"^#+\s*", "", t)
+    t = re.sub(r"^\*+\s*|\s*\*+$", "", t)
+    t = re.sub(r"^_+\s*|\s*_+$", "", t)
+    return t.strip()
+
+
+def _exact_glow_key(title_raw: str) -> str | None:
+    """
+    Return section key only for literal canonical titles.
+    Rejects lowercase, bold wrappers, altered names (CB-005).
+    """
+    # Exact match after outer whitespace only — no case fold, no bold strip
+    return EXACT_TITLES.get(title_raw.strip())
+
+
+def _split_sections(markdown: str) -> tuple[dict[str, str], str, list[str], str]:
     """
     Split markdown on Glow four-section headings.
 
-    Enforces exact titles, exact order, no duplicates.
-    Preserves section body text without stripping surrounding whitespace.
-    Returns (sections, preamble, ordered_keys).
+    Enforces exact literal titles, exact order, no duplicates.
+    Preserves CRLF and section body whitespace.
+    Nested headings deeper than ## (e.g. #### Decisions) stay in the body.
+    Returns (sections, preamble, ordered_keys, line_ending).
     """
-    lines = markdown.replace("\r\n", "\n").split("\n")
+    ending = _detect_line_ending(markdown)
+    lines = _split_lines(markdown, ending)
     sections: dict[str, list[str]] = {}
     order: list[str] = []
     current: str | None = None
     preamble: list[str] = []
     in_glow = False
 
-    heading_re = re.compile(r"^(#{1,4})\s+(.+?)\s*$")
+    # Capture heading level (1-4) and exact title text
+    heading_re = re.compile(r"^(#{1,4})\s+(.*?)\s*$")
 
     for line in lines:
+        # For heading match, also allow CRLF already stripped by split
         m = heading_re.match(line)
         if m:
-            raw = _normalize_heading(m.group(2))
-            # Do not strip parentheticals for Glow keys — exact title only
-            mapped = _exact_glow_key(raw)
+            level = len(m.group(1))
+            title_raw = m.group(2)
+            mapped = _exact_glow_key(title_raw)
             if mapped is not None:
                 if mapped in sections:
                     raise PlanImportError(
-                        f"Duplicate Glow section heading: '{m.group(2).strip()}'. "
+                        f"Duplicate Glow section heading: '{title_raw.strip()}'. "
                         "Each of Goal / Constraints / Open questions / Who gets what next "
                         "may appear exactly once."
                     )
@@ -97,16 +121,19 @@ def _split_sections(markdown: str) -> tuple[dict[str, str], str, list[str]]:
                 sections[current] = []
                 order.append(current)
                 continue
-            # Stop capturing when companion / other headings begin
-            stop_key = raw.split("—")[0].split("(")[0].strip()
-            if stop_key in STOP_HEADINGS or any(
+
+            # Companion stop only at document structural levels # or ##
+            stop_norm = _normalize_heading_for_stop(title_raw)
+            stop_key = stop_norm.split("—")[0].split("(")[0].strip()
+            is_stop = stop_key in STOP_HEADINGS or any(
                 stop_key.startswith(s) for s in STOP_HEADINGS
-            ):
+            )
+            if is_stop and level <= 2:
                 current = None
                 in_glow = False
                 continue
-            # Non-Glow, non-stop heading while inside a section: treat as body line
-            # (e.g. #### nested) — keep in body for fidelity
+
+            # Nested heading (###/####) or non-stop: keep in body for fidelity
             if current is not None:
                 sections[current].append(line)
                 continue
@@ -120,21 +147,15 @@ def _split_sections(markdown: str) -> tuple[dict[str, str], str, list[str]]:
         else:
             sections[current].append(line)
 
-    # Join bodies WITHOUT strip — preserve surrounding blank lines / indentation
-    body_map = {k: "\n".join(v) for k, v in sections.items()}
-    return body_map, "\n".join(preamble), order
+    body_map = {k: ending.join(v) for k, v in sections.items()}
+    return body_map, ending.join(preamble), order, ending
 
 
 def _parse_bullet_list(body: str, *, join_continuations: bool = False) -> list[str]:
-    """
-    Parse bullet/numbered lists.
-
-    CB-004: default does NOT join continuation lines (preserves fidelity).
-    Continuations become their own items when join_continuations is False.
-    """
+    """Parse bullet/numbered lists without joining continuations by default."""
     items: list[str] = []
-    for line in body.split("\n"):
-        # Keep original indent awareness but match on stripped content
+    # Normalize only for line iteration of structured view
+    for line in body.replace("\r\n", "\n").split("\n"):
         s = line.strip()
         if not s:
             continue
@@ -158,7 +179,7 @@ def _parse_bullet_list(body: str, *, join_continuations: bool = False) -> list[s
 def _parse_who_gets_what(body: str) -> dict[str, str]:
     """Parse '- **Name:** task' or '- Name: task' lines."""
     result: dict[str, str] = {}
-    for line in body.split("\n"):
+    for line in body.replace("\r\n", "\n").split("\n"):
         s = line.strip()
         if not s:
             continue
@@ -175,7 +196,6 @@ def _parse_who_gets_what(body: str) -> dict[str, str]:
 
 
 def _extract_meta(preamble: str, markdown: str) -> dict[str, str | None]:
-    """Pull project / task ID / version / repo from tables or labels if present."""
     meta: dict[str, str | None] = {
         "project": None,
         "task_id": None,
@@ -210,12 +230,11 @@ def _extract_meta(preamble: str, markdown: str) -> dict[str, str | None]:
 
 
 def _parse_assignee_block(title: str, body: str) -> AssignedTask:
-    """Parse assignee subsection; keep Completion criteria out of the task list (N1)."""
     assignee = re.split(r"\s*[—-]\s*", title.strip())[0].strip()
     criteria = ""
     blocked = None
     kept_lines: list[str] = []
-    for line in body.split("\n"):
+    for line in body.replace("\r\n", "\n").split("\n"):
         s = line.strip()
         cm = re.match(r"(?i)^\*\*completion criteria:?\*\*\s*(.*)$", s)
         if not cm:
@@ -267,16 +286,18 @@ def _parse_assignee_block(title: str, body: str) -> AssignedTask:
 
 
 def _extract_extra_lists(markdown: str) -> tuple[list[str], list[str], list[AssignedTask]]:
-    """Extract Decisions, Assumptions, Assigned tasks if present outside Glow four."""
     decisions: list[str] = []
     assumptions: list[str] = []
     assigned: list[AssignedTask] = []
 
+    # Companion sections at # / ## only
     heading_re = re.compile(r"^(#{1,2})\s+(.+?)\s*$", re.MULTILINE)
-    parts = heading_re.split(markdown)
+    # Work on LF view for companion extract (structured only)
+    text = markdown.replace("\r\n", "\n")
+    parts = heading_re.split(text)
     i = 1
     while i + 2 < len(parts):
-        title = _normalize_heading(parts[i + 1])
+        title = _normalize_heading_for_stop(parts[i + 1])
         body = parts[i + 2]
         if title == "decisions":
             decisions = _parse_bullet_list(body, join_continuations=False)
@@ -308,38 +329,30 @@ def parse_glow_plan_markdown(
     markdown: str,
 ) -> tuple[GlowPlan, dict, list[str], list[str], list[AssignedTask]]:
     """
-    Parse Markdown that must contain exactly the four Glow sections
-    in order, with exact titles, no duplicates.
-    Section bodies keep surrounding whitespace for round-trip fidelity.
+    Parse Markdown with exactly the four Glow sections in order,
+    with literal titles, preserving CRLF and body whitespace.
     """
-    sections, preamble, order = _split_sections(markdown)
+    sections, preamble, order, ending = _split_sections(markdown)
 
     if order != list(REQUIRED_SECTIONS):
         got = " → ".join(order) if order else "(none)"
-        need = " → ".join(REQUIRED_SECTIONS)
         missing = [s for s in REQUIRED_SECTIONS if s not in sections]
-        extras = [s for s in order if s not in REQUIRED_SECTIONS]
         detail = []
         if missing:
             detail.append(f"missing: {', '.join(missing)}")
         if order and order != list(REQUIRED_SECTIONS) and not missing:
             detail.append(f"wrong order (got {got})")
-        if extras:
-            detail.append(f"unexpected: {', '.join(extras)}")
-        # Also catch altered titles (no glow sections found but lookalike headings)
         raise PlanImportError(
             "Glow plan must include exactly these sections in order, "
-            "with exact titles (no duplicates, no renaming): "
+            "with literal titles (no lowercase, bold, rename, or duplicates): "
             + " / ".join(REQUIRED_TITLE_LABELS)
             + f". Got: {got}. "
-            + ("; ".join(detail) if detail else f"Expected: {need}.")
+            + ("; ".join(detail) if detail else "")
         )
 
-    # Raw bodies — preserve surrounding whitespace (CB-004)
     raw_sections = {k: sections[k] for k in REQUIRED_SECTIONS}
 
-    # Structured views for app logic (routing, lists) — do not use for fidelity export
-    goal = raw_sections["goal"]  # keep exact body as goal string
+    goal = raw_sections["goal"]
     constraints = _parse_bullet_list(
         raw_sections["constraints"], join_continuations=False
     )
@@ -354,6 +367,7 @@ def parse_glow_plan_markdown(
         open_questions=open_questions,
         who_gets_what_next=who,
         raw_sections=raw_sections,
+        line_ending=ending,
     )
     meta = _extract_meta(preamble, markdown)
     decisions, assumptions, assigned = _extract_extra_lists(markdown)
@@ -368,7 +382,9 @@ def import_plan_file(
     merge_decisions: bool = True,
 ) -> ProjectContext:
     """Import a Glow plan file into project context, preserving prior decisions."""
-    text = path.read_text(encoding="utf-8")
+    # Read as binary then decode to preserve CRLF in text
+    raw_bytes = path.read_bytes()
+    text = raw_bytes.decode("utf-8")
     plan, meta, decisions, assumptions, assigned = parse_glow_plan_markdown(text)
 
     if ctx.decisions:

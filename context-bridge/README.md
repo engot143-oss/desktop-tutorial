@@ -23,7 +23,7 @@ manual adapters only (`awaiting_execution` packets).
 ```bash
 cd /workspace/context-bridge
 export PYTHONPATH=/workspace/context-bridge
-python3 -m context_bridge --version   # Context Bridge 1.1.1
+python3 -m context_bridge --version   # Context Bridge 1.1.2
 # or: ./cb --version
 ```
 
@@ -38,7 +38,7 @@ receive Glow plan  →  route worker  →  manual packet  →  worker executes (
 ```bash
 # 1) Receive
 ./cb init "My Project" --repo /workspace/context-bridge
-./cb import-plan "My Project" path/to/glow-plan.md --task-id T-1 --version 1.1.1
+./cb import-plan "My Project" path/to/glow-plan.md --task-id T-1 --version 1.1.2
 
 # 2) Route (ambiguous → exit 2 / clarify; Glow --override wins)
 ./cb route "My Project" --task-id T-1
@@ -129,8 +129,15 @@ context-bridge/
 - No auto-send into ChatGPT/Glow UI
 - No deploy pipelines, credential vaults, or multi-repo sync
 
-## CB-004 (v1.1.1)
+## CB-004 (v1.1.2)
 
 - Exact four-section contract: reject reorder/alter/duplicate; preserve section body whitespace.
 - Scrub free-text secrets on all export surfaces including metadata and Blocked until.
 - Regression: `python3 -m unittest tests.test_cb004_fidelity_scrub -v`
+
+## CB-005 (v1.1.2)
+
+- Stable multi-cycle four-section body fidelity; CRLF preserved.
+- Nested #### headings stay in body; companion stops at #/## only.
+- Literal titles only; scrub dict keys + all metadata surfaces.
+- Status remains FAIL until Glow re-verifies.
