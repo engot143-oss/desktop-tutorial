@@ -1,0 +1,6 @@
+Manual packet for claude
+  status: awaiting_execution
+  underlying connection: unavailable
+  error_class: connection_unavailable
+  packet: /workspace/context-bridge/demos/v11-ops/packets/ROUTE-001-claude-packet-20261001T175450Z.md
+  message: Manual packet ready (awaiting_execution). Underlying: unavailable. Paste to claude, then import-result.

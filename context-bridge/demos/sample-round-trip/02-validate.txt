@@ -1,0 +1,7 @@
+VALID Glow plan
+  goal length: 100
+  constraints: 5
+  open_questions: 1
+  who_gets_what_next: ['Claude', 'Grok Bot', 'Enrique']
+  meta: {'project': 'Sample Widget API', 'task_id': 'SAMPLE-001', 'version': '1.0.0', 'repo_path': None, 'source': 'Glow (sample)'}
+  decisions: 3 assumptions: 2 assigned: 2

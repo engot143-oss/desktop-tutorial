@@ -1,0 +1,55 @@
+{
+  "handoff_id": "SAMPLE-001",
+  "project": "Sample Widget API",
+  "version": "1.0.0",
+  "recipient": "Claude",
+  "date": "2026-10-01",
+  "source": "Context Bridge",
+  "repo_path": null,
+  "glow_plan": {
+    "goal": "Ship a minimal read-only Widget API stub that returns a hard-coded list of widgets for local demos.\n",
+    "constraints": [
+      "Local only; manual paste/import of plans and results.",
+      "Preserve Glow\u2019s four-section plan exactly.",
+      "No credentials in handoffs.",
+      "No auto-send, deploy, or repo changes in this sample.",
+      "Python stdlib only for the stub consumer."
+    ],
+    "open_questions": [
+      "None blocking. Assume standalone until a target folder/repo is named."
+    ],
+    "who_gets_what_next": {
+      "Claude": "Review the exported handoff and confirm four sections survived intact.",
+      "Grok Bot": "Implement the stub, export a recipient brief, import a result, and prove decisions survive a follow-up update.",
+      "Enrique": "Optional \u2014 name a target folder/repo when ready."
+    },
+    "raw_sections": {
+      "goal": "Ship a minimal read-only Widget API stub that returns a hard-coded list of widgets for local demos.\n",
+      "constraints": "- Local only; manual paste/import of plans and results.\n- Preserve Glow\u2019s four-section plan exactly.\n- No credentials in handoffs.\n- No auto-send, deploy, or repo changes in this sample.\n- Python stdlib only for the stub consumer.\n",
+      "open_questions": "- None blocking. Assume standalone until a target folder/repo is named.\n",
+      "who_gets_what_next": "- **Claude:** Review the exported handoff and confirm four sections survived intact.\n- **Grok Bot:** Implement the stub, export a recipient brief, import a result, and prove decisions survive a follow-up update.\n- **Enrique:** Optional \u2014 name a target folder/repo when ready.\n"
+    }
+  },
+  "decisions": [
+    "Domain default: engineering.",
+    "v1 is local-only.",
+    "Four-section Glow shape is canonical."
+  ],
+  "assumptions": [
+    "Standalone project path until a folder/repo is named.",
+    "Recipients consume Markdown + JSON by manual paste."
+  ],
+  "assigned_tasks": [
+    {
+      "assignee": "Claude",
+      "tasks": [
+        "Verify four-section fidelity.",
+        "Verify decision preservation."
+      ],
+      "completion_criteria": "Written pass/fail on fidelity and preservation."
+    }
+  ],
+  "next_action": "Review the exported handoff and confirm four sections survived intact.",
+  "flags": [],
+  "credentials_included": false
+}

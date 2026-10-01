@@ -1,0 +1,12 @@
+Imported result from Grok Bot
+  task_id=SAMPLE-001 based_on=1.0.0
+  changes=3 evidence=3
+  blockers=1
+  new_decisions=1
+  next_action: Claude reviews the exported brief; Enrique optionally names a target folder/repo.
+  decisions now: 4 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T175449Z.md
+  json:     /workspace/context-bridge/data/projects/sample-widget-api/glow_returns/SAMPLE-001-glow-return-20261001T175449Z.json
+  open_flags=0 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 0, 'other': 0}

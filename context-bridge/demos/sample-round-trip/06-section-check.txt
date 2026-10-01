@@ -1,0 +1,1 @@
+PASS: four Glow sections + sample goal + decisions present in /workspace/context-bridge/demos/sample-round-trip/exports/SAMPLE-001-claude-v1.0.0.md

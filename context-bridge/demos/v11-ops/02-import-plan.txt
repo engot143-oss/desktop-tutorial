@@ -1,0 +1,6 @@
+Imported Glow plan into 'Ops Flow Demo'
+  task_id=ROUTE-001 version=1.1.0
+  decisions=2 assumptions=1
+  goal: Demonstrate Claude vs Grok routing from Who gets what next with Glow override.
+...
+  sections OK: Goal / Constraints / Open questions / Who gets what next

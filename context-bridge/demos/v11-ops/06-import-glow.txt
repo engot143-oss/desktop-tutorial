@@ -1,0 +1,12 @@
+Imported result from Claude
+  task_id=ROUTE-001 based_on=1.1.0
+  changes=1 evidence=1
+  blockers=1
+  new_decisions=1
+  next_action: Glow checks return pack and assigns next step.
+  decisions now: 3 (earlier decisions preserved)
+  FLAGS: none
+Glow return pack:
+  markdown: /workspace/context-bridge/demos/v11-ops/glow/ROUTE-001-glow-return-20261001T175450Z.md
+  json:     /workspace/context-bridge/demos/v11-ops/glow/ROUTE-001-glow-return-20261001T175450Z.json
+  open_flags=1 summary={'conflict': 0, 'outdated': 0, 'missing_evidence': 0, 'failed_call': 0, 'connection_unavailable': 1, 'other': 0}
