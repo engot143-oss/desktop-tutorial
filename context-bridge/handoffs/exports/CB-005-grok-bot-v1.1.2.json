@@ -1,0 +1,100 @@
+{
+  "handoff_id": "CB-005",
+  "project": "Context Bridge",
+  "version": "1.1.2",
+  "recipient": "Grok Bot",
+  "date": "2026-10-01",
+  "source": "Context Bridge",
+  "repo_path": "",
+  "glow_plan": {
+    "goal": "\nResolve the independently reproduced failures and provide a complete package for Glow\u2019s re-verification.\n",
+    "constraints": [
+      "Keep the hierarchy Eric \u2192 Glow \u2192 Grok Bot \u2192 Claude / Grok.",
+      "Keep execution manual-first and local-only. No live worker connections or deployment.",
+      "Work in a local branch. Do not push or merge without Eric\u2019s instruction.",
+      "Use synthetic secrets only.",
+      "Preserve non-secret section bodies byte-for-byte. Credential redaction is the only permitted body transformation.",
+      "Completion claims and passing supplied tests do not establish Glow\u2019s PASS."
+    ],
+    "open_questions": [
+      "None for these fixes. If preserving the existing contract requires a design change, report it before changing the contract."
+    ],
+    "who_gets_what_next": {
+      "Grok Bot": "Implement the fixes and regressions below.",
+      "Claude / Grok": "Support implementation or review through manual handoffs as needed.",
+      "Glow": "Independently inspect and rerun verification.",
+      "Eric": "Review the returned package and any proposed push or merge."
+    },
+    "raw_sections": {
+      "goal": "\nResolve the independently reproduced failures and provide a complete package for Glow\u2019s re-verification.\n",
+      "constraints": "\n* Keep the hierarchy Eric \u2192 Glow \u2192 Grok Bot \u2192 Claude / Grok.\n* Keep execution manual-first and local-only. No live worker connections or deployment.\n* Work in a local branch. Do not push or merge without Eric\u2019s instruction.\n* Use synthetic secrets only.\n* Preserve non-secret section bodies byte-for-byte. Credential redaction is the only permitted body transformation.\n* Completion claims and passing supplied tests do not establish Glow\u2019s PASS.\n",
+      "open_questions": "\n* None for these fixes. If preserving the existing contract requires a design change, report it before changing the contract.\n",
+      "who_gets_what_next": "\n* Grok Bot: Implement the fixes and regressions below.\n* Claude / Grok: Support implementation or review through manual handoffs as needed.\n* Glow: Independently inspect and rerun verification.\n* Eric: Review the returned package and any proposed push or merge.\n"
+    }
+  },
+  "decisions": [
+    "Domain default: engineering.",
+    "Context Bridge packages Glow/ChatGPT plans into recipient briefs; Grok Bot owns v1 implementation.",
+    "Claude reviews after a demonstrated round trip exists.",
+    "v1 is local-only; no connectors required for the first ship.",
+    "Demo artifacts live under demos/sample-round-trip/ and demos/cb-001-exports/.",
+    "CLI entrypoints: `python3 -m context_bridge` and `./cb`.",
+    "Review status is \"pending verification\", not pass or fail.",
+    "CB-001 review status: conditional pass, pending B1 and B2.",
+    "The official Result format is the import contract. The importer must conform to it, not the other way around.",
+    "Conflicting or outdated updates must be flagged in recipient exports, not only in stored context.",
+    "CB-001 review status stays conditional pass; review incomplete pending the full artifact set (B0).",
+    "A review verdict on redaction and local-only requires the redaction code and a run of the fake-secret test; the absence of secrets in sample files is not evidence.",
+    "The official Result format is the import contract; the importer must conform to it.",
+    "Earlier decisions stay on record, unchanged: engineering default domain; Context Bridge packages plans into recipient briefs and Grok Bot owns v1; Claude reviews after a demonstrated round trip; v1 is local-only with no connectors.",
+    "CB-003 review status: FAIL pending section-fidelity and scrub fixes.",
+    "Earlier hierarchy and local-only decisions stay on record."
+  ],
+  "assumptions": [
+    "Standalone project path until Enrique names a folder/repo.",
+    "\u201cClaude\u201d may be an external chat; no Claude teammate is connected in this workspace yet.",
+    "Four-section Glow shape (Goal / Constraints / Open questions / Who gets what next) is the canonical plan schema."
+  ],
+  "assigned_tasks": [
+    {
+      "assignee": "Grok Bot",
+      "tasks": [
+        "Plan import (paste Markdown matching the four sections).",
+        "Saved project context (persist across handoffs).",
+        "Recipient-specific handoff export (Markdown + JSON).",
+        "Result import (changes, verification evidence, blockers, next action).",
+        "Flag conflicting or outdated updates.",
+        "Deliver working code, setup README, and one demonstrated round trip. **Completion criteria:** A sample Glow plan can be imported, exported for Claude and for Grok Bot, a result can be imported back, and earlier decisions survive a follow-up update. README explains setup and the round-trip demo."
+      ],
+      "completion_criteria": "A sample Glow plan can be imported, exported for Claude and for Grok Bot, a result can be imported back, and earlier decisions survive a follow-up update. README explains setup and the round-trip demo."
+    }
+  ],
+  "next_action": "Implement the fixes and regressions below.",
+  "flags": [
+    {
+      "kind": "importer_gap",
+      "detail": "B1: ## Decisions silently dropped by result_import; B2: next_action first-line only",
+      "source": "Claude review v2"
+    },
+    {
+      "kind": "artifact_pack",
+      "detail": "B0: Claude received stale 8-file pack; full pack rebuilt as context-bridge/ tree",
+      "source": "Claude review v3"
+    },
+    {
+      "type": "version_ahead",
+      "at": "2026-10-01T17:51:39Z",
+      "message": "Result claims version 1.1.0 ahead of project 1.0.1.",
+      "author": "[REDACTED]",
+      "handoff_id": "CB-003"
+    },
+    {
+      "type": "task_mismatch",
+      "at": "2026-10-01T17:51:39Z",
+      "message": "Result task ID CB-003 does not match current CB-002.",
+      "author": "[REDACTED]",
+      "handoff_id": "CB-003"
+    }
+  ],
+  "credentials_included": false
+}
