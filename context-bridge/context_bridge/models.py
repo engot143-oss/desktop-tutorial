@@ -213,12 +213,21 @@ class ResultRecord:
     new_decisions: list[str] = field(default_factory=list)
     new_assumptions: list[str] = field(default_factory=list)
     imported_at: str = field(default_factory=utc_now_iso)
+    # CB-007: full document + per-section bodies (compat defaults for older JSON)
+    raw_markdown: str = ""
+    section_bodies: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ResultRecord:
+        raw_bodies = data.get("section_bodies") or {}
+        section_bodies = {
+            str(k): str(v)
+            for k, v in dict(raw_bodies).items()
+            if isinstance(v, str)
+        }
         return cls(
             handoff_id=data.get("handoff_id", ""),
             project=data.get("project", ""),
@@ -231,4 +240,6 @@ class ResultRecord:
             new_decisions=list(data.get("new_decisions") or []),
             new_assumptions=list(data.get("new_assumptions") or []),
             imported_at=data.get("imported_at", utc_now_iso()),
+            raw_markdown=str(data.get("raw_markdown") or ""),
+            section_bodies=section_bodies,
         )

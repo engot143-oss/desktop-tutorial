@@ -20,6 +20,7 @@ def build_glow_return_pack(
     """
     Glow-facing summary: findings, evidence, blockers, next action,
     decisions, task ID, based-on-version, all open flags.
+    CB-007: also carries scrubbed section_bodies / raw_markdown.
     """
     flags = list(ctx.flags)
     changes = list(result.changes) if result else []
@@ -41,6 +42,15 @@ def build_glow_return_pack(
             }
         ]
 
+    section_bodies: dict[str, str] = {}
+    raw_markdown = ""
+    if result is not None:
+        section_bodies = {
+            str(k): scrub_text(str(v))
+            for k, v in (result.section_bodies or {}).items()
+        }
+        raw_markdown = scrub_text(result.raw_markdown or "")
+
     pack = {
         "pack_type": "glow_return",
         "project": ctx.project,
@@ -55,6 +65,8 @@ def build_glow_return_pack(
         "next_action": next_action,
         "decisions": list(ctx.decisions),
         "assumptions": list(ctx.assumptions),
+        "section_bodies": section_bodies,
+        "raw_markdown": raw_markdown,
         "open_flags": flags,
         "flag_summary": {
             "conflict": sum(1 for f in flags if f.get("type") == "conflict"),
@@ -107,6 +119,19 @@ def render_glow_return_markdown(pack: dict[str, Any]) -> str:
             lines.append(f"- {scrub_text(str(f))}")
     else:
         lines.append("- (none)")
+
+    # CB-007: full Changes body (tables, nested headings, proposed wording)
+    lines.extend(["", "## Full Changes (preserved)", ""])
+    sb = pack.get("section_bodies") or {}
+    full_changes = sb.get("changes") if isinstance(sb, dict) else None
+    if full_changes:
+        lines.append(scrub_text(str(full_changes)))
+    elif findings:
+        # Compat: old results without section_bodies
+        for f in findings:
+            lines.append(f"- {scrub_text(str(f))}")
+    else:
+        lines.append("(none)")
 
     lines.extend(["", "## Verification evidence"])
     ev = pack.get("verification_evidence") or []
