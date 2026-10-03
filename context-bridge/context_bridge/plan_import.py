@@ -335,7 +335,7 @@ def parse_glow_plan_markdown(
     sections, preamble, order, ending = _split_sections(markdown)
 
     if order != list(REQUIRED_SECTIONS):
-        got = " → ".join(order) if order else "(none)"
+        got = " -> ".join(order) if order else "(none)"
         missing = [s for s in REQUIRED_SECTIONS if s not in sections]
         detail = []
         if missing:

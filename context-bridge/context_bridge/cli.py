@@ -144,7 +144,7 @@ def cmd_route(args: argparse.Namespace) -> int:
     if decision.worker:
         print(f"worker: {decision.worker}")
     else:
-        print("worker: (none — clarification required)")
+        print("worker: (none - clarification required)")
     print(f"reason: {decision.reason}")
     if decision.candidates:
         print("candidates:")
@@ -321,7 +321,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="cb",
         description=(
-            "Context Bridge v1.2 — local engineering handoff tool. "
+            "Context Bridge v1.2 - local engineering handoff tool. "
             "CLI is authoritative. `cb packet` is manual paste. "
             "`cb send` tries one live hop and falls back to a manual packet."
         ),
@@ -381,7 +381,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--override",
         choices=["claude", "grok"],
         default=None,
-        help="Glow override — always wins",
+        help="Glow override - always wins",
     )
     s.add_argument(
         "--role",
@@ -475,7 +475,20 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _configure_stdio() -> None:
+    """Print safely on consoles that are not UTF-8. Files stay UTF-8."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if not callable(reconfigure):
+            continue
+        try:
+            reconfigure(errors="replace")
+        except (OSError, ValueError):
+            continue
+
+
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)

@@ -105,7 +105,7 @@ def route_task(
         return RouteDecision(
             status="ok",
             worker=w,
-            reason=f"Glow override → {w}"
+            reason=f"Glow override -> {w}"
             + (f" (task {tid})" if tid else ""),
             candidates=candidates,
             override_applied=True,
@@ -128,7 +128,7 @@ def route_task(
         return RouteDecision(
             status="ok",
             worker=worker,
-            reason=f"Sole worker in Who gets what next: {worker} — {action[:120]}",
+            reason=f"Sole worker in Who gets what next: {worker} - {action[:120]}",
             candidates=candidates,
         )
 
@@ -141,7 +141,7 @@ def route_task(
             return RouteDecision(
                 status="ok",
                 worker="claude",
-                reason="Role=coding default → Claude (Glow may override)",
+                reason="Role=coding default -> Claude (Glow may override)",
                 candidates=candidates,
             )
         return RouteDecision(
@@ -156,7 +156,7 @@ def route_task(
             return RouteDecision(
                 status="ok",
                 worker="grok",
-                reason="Role=explore / second-opinion default → Grok (Glow may override)",
+                reason="Role=explore / second-opinion default -> Grok (Glow may override)",
                 candidates=candidates,
             )
         return RouteDecision(

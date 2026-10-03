@@ -514,10 +514,26 @@ class SendFallbackTests(V12Base):
             ]
         )
         self.assertEqual(code, 3, out + err)
-        self.assertIn("error_class: connection_error", out)
+        self.assertIn("FALLBACK: manual packet", out)
         self.assertIn("connection: failed", out)
+        self.assertIn("status: awaiting_execution", out)
+        # A closed local port refuses immediately on some systems and times
+        # out on others (Windows). Either class is the same manual fallback.
+        self.assertTrue(
+            "error_class: connection_error" in out
+            or "error_class: timeout" in out,
+            out,
+        )
+        packet_line = next(
+            line for line in out.splitlines() if line.startswith("  packet: ")
+        )
+        packet_path = Path(packet_line.split("packet:", 1)[1].strip())
+        self.assertTrue(packet_path.is_file(), packet_path)
+        self.assertIn("awaiting_execution", packet_path.read_text(encoding="utf-8"))
         ctx = store.load_context("Habitat Sensors")
         self.assertTrue(ctx.glow_plan)
+        self.assertEqual(ctx.glow_plan.goal, "Ship the habitat sensor.")
+        self.assertIn("Manual paste stays the fallback.", ctx.decisions)
         self.assertTrue(any(flag["type"] == "failed_call" for flag in ctx.flags))
 
     def test_empty_endpoint_is_unavailable(self):
