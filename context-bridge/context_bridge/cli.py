@@ -12,6 +12,7 @@ from . import store
 from .adapters.manual import create_manual_packet
 from .export import export_handoff
 from .glow_pack import write_glow_return_pack
+from .live_send import send_hop
 from .plan_import import PlanImportError, import_plan_file, parse_glow_plan_markdown
 from .result_import import ResultImportError, apply_result, load_result
 from .route import route_task
@@ -143,7 +144,7 @@ def cmd_route(args: argparse.Namespace) -> int:
     if decision.worker:
         print(f"worker: {decision.worker}")
     else:
-        print("worker: (none — clarification required)")
+        print("worker: (none - clarification required)")
     print(f"reason: {decision.reason}")
     if decision.candidates:
         print("candidates:")
@@ -209,6 +210,73 @@ def cmd_glow_pack(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_send(args: argparse.Namespace) -> int:
+    """One live hop. Falls back to a manual packet; does not crash or drop context."""
+    try:
+        ctx = store.load_context(args.project)
+    except FileNotFoundError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    if args.task_id:
+        ctx.current_task_id = args.task_id
+    try:
+        outcome = send_hop(
+            ctx,
+            args.worker,
+            provider=args.provider,
+            model=args.model,
+            base_url=args.base_url,
+            dry_run=args.dry_run,
+            max_tokens=args.max_tokens,
+            timeout=args.timeout,
+            out_dir=Path(args.out) if args.out else None,
+        )
+    except ValueError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
+    if outcome.dry_run:
+        print(outcome.preview, end="" if outcome.preview.endswith("\n") else "\n")
+        return outcome.exit_code
+
+    if outcome.fell_back and outcome.result is not None:
+        underlying = (outcome.result.details or {}).get("underlying")
+        print("FALLBACK: manual packet (live hop did not complete)")
+        print(f"  worker: {outcome.result.worker}")
+        print(f"  provider: {outcome.provider}")
+        print(f"  model: {outcome.model}")
+        print(f"  status: {outcome.result.status.value}")
+        print(f"  connection: {underlying}")
+        print(f"  error_class: {outcome.result.error_class}")
+        print(f"  error_message: {outcome.result.error_message}")
+        print(f"  packet: {outcome.result.packet_path}")
+        print(f"  message: {outcome.result.message}")
+        print("Context saved. Paste the packet to the worker, then cb import-result.")
+        return outcome.exit_code
+
+    if outcome.result is not None and outcome.result.status.value == "success":
+        print("Live hop complete")
+        print(f"  worker: {outcome.result.worker}")
+        print(f"  provider: {outcome.provider}")
+        print(f"  model: {outcome.model}")
+        print(f"  status: {outcome.result.status.value}")
+        print(f"  result: {outcome.result_path}")
+        if outcome.glow_md:
+            print(f"  glow markdown: {outcome.glow_md}")
+        if outcome.glow_json:
+            print(f"  glow json: {outcome.glow_json}")
+        if outcome.note:
+            print(f"  note: {outcome.note}")
+        print(f"  message: {outcome.result.message}")
+        return outcome.exit_code
+
+    print("ERROR: send finished without a result or a manual packet.", file=sys.stderr)
+    return 1
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     if args.project:
         ctx = store.load_context(args.project)
@@ -253,8 +321,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="cb",
         description=(
-            "Context Bridge v1.1 — local engineering handoff tool. "
-            "CLI is authoritative (manual paste first; live connections out of scope)."
+            "Context Bridge v1.2 - local engineering handoff tool. "
+            "CLI is authoritative. `cb packet` is manual paste. "
+            "`cb send` tries one live hop and falls back to a manual packet."
         ),
     )
     p.add_argument("--version", action="version", version=f"Context Bridge {__version__}")
@@ -312,7 +381,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--override",
         choices=["claude", "grok"],
         default=None,
-        help="Glow override — always wins",
+        help="Glow override - always wins",
     )
     s.add_argument(
         "--role",
@@ -343,6 +412,48 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_packet)
 
     s = sub.add_parser(
+        "send",
+        help="One live hop; manual packet if no key, no endpoint, or the call fails",
+    )
+    s.add_argument("project", help="Project name")
+    s.add_argument(
+        "worker",
+        choices=["claude", "grok", "glow", "chatgpt"],
+        help="Worker role (provider defaults: claude=anthropic, grok=xai, glow/chatgpt=openai)",
+    )
+    s.add_argument("--task-id", default=None)
+    s.add_argument(
+        "--provider",
+        default=None,
+        help="anthropic, xai, openai, openai-compatible (alias: ollama)",
+    )
+    s.add_argument("--model", default=None, help="Override the provider model")
+    s.add_argument(
+        "--base-url",
+        default=None,
+        help="Override the provider base URL (OpenAI-compatible default: http://localhost:11434/v1)",
+    )
+    s.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the exact request that would be sent; do not call or write",
+    )
+    s.add_argument(
+        "--max-tokens",
+        type=int,
+        default=None,
+        help="Per-call output cap (default 1024, hard cap 4096)",
+    )
+    s.add_argument(
+        "--timeout",
+        type=float,
+        default=None,
+        help="Per-call timeout in seconds (default 60, hard cap 120)",
+    )
+    s.add_argument("--out", default=None, help="Directory for a fallback manual packet")
+    s.set_defaults(func=cmd_send)
+
+    s = sub.add_parser(
         "glow-pack",
         help="Slice B: write Glow return pack from context (+ optional result)",
     )
@@ -364,7 +475,20 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _configure_stdio() -> None:
+    """Print safely on consoles that are not UTF-8. Files stay UTF-8."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if not callable(reconfigure):
+            continue
+        try:
+            reconfigure(errors="replace")
+        except (OSError, ValueError):
+            continue
+
+
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)

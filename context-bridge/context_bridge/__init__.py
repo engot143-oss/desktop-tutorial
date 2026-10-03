@@ -1,3 +1,3 @@
-"""Context Bridge v1.1 — local engineering handoff tool."""
+"""Context Bridge — local engineering handoff tool."""
 
-__version__ = "1.1.3"
+__version__ = "1.2.0"

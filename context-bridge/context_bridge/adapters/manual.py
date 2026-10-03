@@ -13,6 +13,16 @@ from ..scrub import scrub_obj, scrub_text
 from .base import AdapterResult, ConnectionStatus
 
 
+# claude/grok are the v1.1 packet workers. glow/chatgpt are accepted so a
+# live `cb send` hop can fall back to the same manual packet writer.
+_WORKER_LABELS = {
+    "claude": "Claude",
+    "grok": "Grok",
+    "glow": "Glow",
+    "chatgpt": "ChatGPT",
+}
+
+
 class ManualAdapter:
     """
     v1.1 adapter: never makes a live network call.
@@ -26,8 +36,8 @@ class ManualAdapter:
 
     def __init__(self, worker: str):
         w = worker.strip().lower()
-        if w not in ("claude", "grok"):
-            raise ValueError("worker must be claude or grok")
+        if w not in _WORKER_LABELS:
+            raise ValueError("worker must be claude, grok, glow, or chatgpt")
         self.worker = w
 
     def dispatch(
@@ -118,7 +128,7 @@ def write_manual_packet(
     if not ctx.current_task_id:
         raise ValueError("Project has no task ID.")
 
-    recipient_label = "Claude" if worker == "claude" else "Grok"
+    recipient_label = _WORKER_LABELS.get(worker, worker)
     handoff = build_handoff(ctx, recipient_label, source="Context Bridge manual adapter")
     md_body = render_markdown(handoff)
 

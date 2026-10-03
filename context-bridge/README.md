@@ -3,6 +3,8 @@
 Local-only engineering handoff tool. Carry Glow plans to workers (Claude / Grok)
 and bring results back to Glow without losing decisions or project context.
 
+Live hops (v1.2): [docs/LIVE-BRIDGE.md](docs/LIVE-BRIDGE.md).
+
 **Hierarchy:** Eric → Glow (lead) → Grok Bot (execution) → Claude (coding default) /
 Grok (explore / second opinion)
 
