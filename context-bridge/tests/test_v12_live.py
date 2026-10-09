@@ -268,8 +268,8 @@ class VersionAndDefaultsTests(V12Base):
         self.assertEqual(__version__, "1.2.0")
 
     def test_low_cost_defaults_and_base_urls(self):
-        self.assertEqual(AnthropicAdapter().default_model, "claude-3-5-haiku-latest")
-        self.assertEqual(AnthropicAdapter().model, "claude-3-5-haiku-latest")
+        self.assertEqual(AnthropicAdapter().default_model, "claude-haiku-4-5")
+        self.assertEqual(AnthropicAdapter().model, "claude-haiku-4-5")
         self.assertEqual(XAIAdapter().default_model, "grok-3-mini")
         self.assertEqual(OpenAIAdapter().default_model, "gpt-4o-mini")
         compat = OpenAICompatibleAdapter()

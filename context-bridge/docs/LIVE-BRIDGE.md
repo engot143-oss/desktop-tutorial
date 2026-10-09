@@ -25,7 +25,7 @@ The tool itself has no runtime dependencies. `pip` is only for the console scrip
 
 | Worker | Default provider | Key | Default model | Default endpoint |
 |--------|------------------|-----|---------------|------------------|
-| `claude` | `anthropic` | `ANTHROPIC_API_KEY` | `claude-3-5-haiku-latest` | `https://api.anthropic.com` |
+| `claude` | `anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` | `https://api.anthropic.com` |
 | `grok` | `xai` | `XAI_API_KEY` | `grok-3-mini` | `https://api.x.ai/v1` |
 | `glow`, `chatgpt` | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | `https://api.openai.com/v1` |
 | any, with `--provider openai-compatible` | OpenAI-compatible | optional | `llama3.2` | `http://localhost:11434/v1` |
