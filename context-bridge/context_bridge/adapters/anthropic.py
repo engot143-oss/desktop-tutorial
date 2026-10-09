@@ -17,7 +17,7 @@ class AnthropicAdapter:
 
     name = "anthropic"
     require_key = True
-    default_model = "claude-3-5-haiku-latest"
+    default_model = "claude-haiku-4-5"
     default_base = "https://api.anthropic.com"
     key_envs = ("ANTHROPIC_API_KEY",)
     model_envs = ("ANTHROPIC_MODEL",)
