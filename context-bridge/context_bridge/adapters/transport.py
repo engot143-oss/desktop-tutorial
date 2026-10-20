@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import socket
 import urllib.error
 import urllib.parse
@@ -83,11 +84,27 @@ def resolve_timeout(value: float | None, *, env_raw: str | None = None) -> tuple
                 return DEFAULT_TIMEOUT_S, "CB_TIMEOUT was not a number; using the default."
         else:
             value = DEFAULT_TIMEOUT_S
+    if not math.isfinite(value):
+        raise ValueError(
+            f"timeout must be a finite number of seconds, not {value!r}"
+        )
     if value < TIMEOUT_FLOOR_S:
         value = TIMEOUT_FLOOR_S
     if value > TIMEOUT_CAP_S:
         return TIMEOUT_CAP_S, f"timeout capped at {int(TIMEOUT_CAP_S)}s."
     return float(value), note
+
+
+def require_http_url(url: str, *, what: str = "base URL") -> str:
+    """Allow only http and https. Empty is left for the caller to treat as unset."""
+    text = (url or "").strip()
+    if not text:
+        return text
+    scheme = (urllib.parse.urlsplit(text).scheme or "").lower()
+    if scheme not in {"http", "https"}:
+        shown = scheme or "no scheme"
+        raise ValueError(f"{what} must use http or https, not {shown}: {text}")
+    return text
 
 
 def env_first(names: tuple[str, ...]) -> str | None:
@@ -202,6 +219,7 @@ def finalize_headers(headers: dict[str, str]) -> dict[str, str]:
 
 def post_json(req: PreparedRequest, *, timeout: float) -> dict[str, Any]:
     """POST JSON. Raises LiveCallFailed on failure. Does not follow redirects."""
+    require_http_url(req.url, what="request URL")
     payload = req.body_text().encode("utf-8")
     headers = finalize_headers(req.headers)
     request = urllib.request.Request(

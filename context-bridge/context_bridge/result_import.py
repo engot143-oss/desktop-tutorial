@@ -245,12 +245,78 @@ def scrub_result_record(result: ResultRecord) -> ResultRecord:
     return result
 
 
+_RESULT_STRING_FIELDS = (
+    "handoff_id",
+    "project",
+    "based_on_version",
+    "author",
+    "next_action",
+    "raw_markdown",
+    "imported_at",
+)
+_RESULT_LIST_FIELDS = (
+    "changes",
+    "verification_evidence",
+    "blockers",
+    "new_decisions",
+    "new_assumptions",
+)
+
+
+def _validate_result_object(raw: dict) -> None:
+    """Reject JSON values that would crash later (lists, ints, and so on)."""
+    for key in _RESULT_STRING_FIELDS:
+        if key in raw and raw[key] is not None and not isinstance(raw[key], str):
+            raise ResultImportError(
+                f"result field '{key}' must be a string, "
+                f"not {type(raw[key]).__name__}"
+            )
+    for key in _RESULT_LIST_FIELDS:
+        value = raw.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, list):
+            raise ResultImportError(
+                f"result field '{key}' must be a list of strings, "
+                f"not {type(value).__name__}"
+            )
+        if not all(isinstance(item, str) for item in value):
+            raise ResultImportError(f"result field '{key}' must be a list of strings")
+    bodies = raw.get("section_bodies")
+    if bodies is None:
+        return
+    if not isinstance(bodies, dict):
+        raise ResultImportError(
+            "result field 'section_bodies' must be an object, "
+            f"not {type(bodies).__name__}"
+        )
+    for key, value in bodies.items():
+        if not isinstance(value, str):
+            raise ResultImportError(
+                f"result field 'section_bodies.{key}' must be a string, "
+                f"not {type(value).__name__}"
+            )
+
+
 def load_result(path: Path) -> ResultRecord:
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = store.read_text_file(path)
+    except store.InputError as exc:
+        raise ResultImportError(str(exc)) from None
     if path.suffix.lower() == ".json":
-        raw = json.loads(text)
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ResultImportError(f"invalid JSON: {exc.msg}") from None
+        if isinstance(raw, list):
+            raise ResultImportError("result JSON must be an object, not a list")
+        if not isinstance(raw, dict):
+            raise ResultImportError(
+                f"result JSON must be an object, not {type(raw).__name__}"
+            )
+        _validate_result_object(raw)
         # Ensure raw_markdown present for JSON imports when absent
-        if "raw_markdown" not in raw and isinstance(raw, dict):
+        if "raw_markdown" not in raw:
             raw = dict(raw)
             raw.setdefault("raw_markdown", "")
             raw.setdefault("section_bodies", {})
@@ -265,8 +331,13 @@ def load_result(path: Path) -> ResultRecord:
         raise ResultImportError(
             "Result must include changes, verification evidence, blockers, and/or next action."
         )
-    result = ResultRecord.from_dict(raw)
-    return scrub_result_record(result)
+    try:
+        result = ResultRecord.from_dict(raw)
+        return scrub_result_record(result)
+    except (TypeError, AttributeError) as exc:
+        raise ResultImportError(
+            f"result JSON has a field of the wrong type: {exc}"
+        ) from None
 
 
 def _parse_version(v: str) -> tuple[int, ...]:
@@ -362,6 +433,8 @@ def apply_result(ctx: ProjectContext, result: ResultRecord) -> tuple[ProjectCont
     """
     # CB-007: ensure scrubbed before persist (also done in load_result)
     scrub_result_record(result)
+    raw_id = (result.handoff_id or "").strip()
+    file_label = store.require_path_segment(raw_id, "task ID") if raw_id else "result"
 
     flags = detect_flags(ctx, result)
     if not result.verification_evidence:
@@ -404,8 +477,7 @@ def apply_result(ctx: ProjectContext, result: ResultRecord) -> tuple[ProjectCont
     # Persist result artifact (write_json scrub_obj again)
     d = store.project_dir(ctx.project) / "results"
     d.mkdir(parents=True, exist_ok=True)
-    stamp = result.imported_at.replace(":", "").replace("-", "")
-    fname = f"{result.handoff_id or 'result'}-{stamp}.json"
-    store.write_json(d / fname, result.to_dict())
+    stem = store.unique_stem(d, file_label, suffixes=(".json",))
+    store.write_json(store.path_inside(d, f"{stem}.json"), result.to_dict())
 
     return ctx, flags

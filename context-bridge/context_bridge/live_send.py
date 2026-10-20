@@ -27,7 +27,7 @@ from .adapters.transport import (
 )
 from .export import build_handoff, render_markdown
 from .glow_pack import write_glow_return_pack
-from .models import ProjectContext, utc_now_iso
+from .models import ProjectContext
 from .result_import import ResultImportError, apply_result, load_result, parse_result_markdown
 from .scrub import scrub_text
 
@@ -285,10 +285,11 @@ def _fallback(
 
 
 def _write_reply(ctx: ProjectContext, worker: str, markdown: str) -> Path:
+    task = store.require_path_segment(ctx.current_task_id or "result", "task ID")
     folder = store.project_dir(ctx.project) / "results"
     folder.mkdir(parents=True, exist_ok=True)
-    stamp = utc_now_iso().replace(":", "").replace("-", "")
-    path = folder / f"{ctx.current_task_id}-{worker}-live-{stamp}.md"
+    stem = store.unique_stem(folder, f"{task}-{worker}-live", suffixes=(".md",))
+    path = store.path_inside(folder, f"{stem}.md")
     path.write_text(markdown, encoding="utf-8")
     return path
 
@@ -314,6 +315,10 @@ def send_hop(
     worker_l = (worker or "").strip().lower()
     if worker_l not in LIVE_WORKERS:
         raise ValueError("worker must be claude, grok, glow, or chatgpt")
+    if ctx.current_task_id:
+        store.require_path_segment(ctx.current_task_id, "task ID")
+    if ctx.current_version:
+        store.require_path_segment(ctx.current_version, "version")
 
     provider_name = normalize_provider(provider or default_provider_for(worker_l))
     adapter = make_adapter(

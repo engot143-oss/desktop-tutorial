@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from . import store
 from .models import AssignedTask, GlowPlan, ProjectContext, utc_now_iso
 
 # Literal titles only (exact characters — CB-005). Keys are section ids.
@@ -382,9 +383,11 @@ def import_plan_file(
     merge_decisions: bool = True,
 ) -> ProjectContext:
     """Import a Glow plan file into project context, preserving prior decisions."""
-    # Read as binary then decode to preserve CRLF in text
-    raw_bytes = path.read_bytes()
-    text = raw_bytes.decode("utf-8")
+    # Decode UTF-8 so CRLF in the file is preserved as text.
+    try:
+        text = store.read_text_file(path)
+    except store.InputError as exc:
+        raise PlanImportError(str(exc)) from None
     plan, meta, decisions, assumptions, assigned = parse_glow_plan_markdown(text)
 
     if ctx.decisions:
@@ -403,9 +406,17 @@ def import_plan_file(
     if meta.get("repo_path") is not None:
         ctx.repo_path = meta["repo_path"]  # type: ignore[assignment]
     if task_id or meta.get("task_id"):
-        ctx.current_task_id = task_id or str(meta["task_id"])
+        chosen_task = task_id or str(meta["task_id"])
+        try:
+            ctx.current_task_id = store.require_path_segment(chosen_task, "task ID")
+        except ValueError as exc:
+            raise PlanImportError(str(exc)) from None
     if version or meta.get("version"):
-        ctx.current_version = version or str(meta["version"])
+        chosen_version = version or str(meta["version"])
+        try:
+            ctx.current_version = store.require_path_segment(chosen_version, "version")
+        except ValueError as exc:
+            raise PlanImportError(str(exc)) from None
 
     if merge_decisions:
         existing = {d.strip().lower() for d in ctx.decisions}

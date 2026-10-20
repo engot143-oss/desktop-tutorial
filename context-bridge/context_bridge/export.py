@@ -29,6 +29,21 @@ def _next_action_for(ctx: ProjectContext, recipient: str) -> str:
     return ctx.glow_plan.goal if ctx.glow_plan else ""
 
 
+def validate_recipient(recipient: str) -> str:
+    """Reject empty, punctuation-only, and path-like recipient names."""
+    text = (recipient or "").strip()
+    if not any(ch.isalnum() for ch in text):
+        raise ValueError("Recipient name must include a letter or digit.")
+    if any(ch in text for ch in "/\\\x00\n\r"):
+        raise ValueError(
+            f"recipient {recipient!r} is not a safe file name "
+            "(empty names, path separators, and '..' are not allowed)"
+        )
+    slug = text.lower().replace(" ", "-")
+    store.require_path_segment(slug, "recipient")
+    return text
+
+
 def build_handoff(ctx: ProjectContext, recipient: str, source: str = "Context Bridge") -> HandoffRecord:
     if not ctx.glow_plan:
         raise ValueError("Project has no Glow plan. Import a plan first.")
@@ -183,19 +198,27 @@ def export_handoff(
     out_dir: Path | None = None,
     source: str = "Context Bridge",
 ) -> tuple[Path, Path, HandoffRecord]:
-    h = build_handoff(ctx, recipient, source=source)
+    recipient_name = validate_recipient(recipient)
+    h = build_handoff(ctx, recipient_name, source=source)
+    task = store.require_path_segment(h.handoff_id, "task ID")
+    version = store.require_path_segment(h.version, "version")
+    slug = recipient_name.lower().replace(" ", "-")
+    store.require_path_segment(slug, "recipient")
     if out_dir is None:
         out_dir = store.project_dir(ctx.project) / "exports"
     out_dir.mkdir(parents=True, exist_ok=True)
-    slug = recipient.strip().lower().replace(" ", "-")
-    base = f"{h.handoff_id}-{slug}-v{h.version}"
-    md_path = out_dir / f"{base}.md"
-    json_path = out_dir / f"{base}.json"
+    base = f"{task}-{slug}-v{version}"
+    md_path = store.path_inside(out_dir, f"{base}.md")
+    json_path = store.path_inside(out_dir, f"{base}.json")
     md_text = render_markdown(h)
     # Write bytes to preserve CRLF when present
     md_path.write_bytes(md_text.encode("utf-8"))
     store.write_json(json_path, scrub_obj(h.to_dict(), root=True))
     handoffs = store.project_dir(ctx.project) / "handoffs"
-    store.write_json(handoffs / f"{base}.json", scrub_obj(h.to_dict(), root=True))
-    (handoffs / f"{base}.md").write_bytes(md_text.encode("utf-8"))
+    handoffs.mkdir(parents=True, exist_ok=True)
+    store.write_json(
+        store.path_inside(handoffs, f"{base}.json"),
+        scrub_obj(h.to_dict(), root=True),
+    )
+    store.path_inside(handoffs, f"{base}.md").write_bytes(md_text.encode("utf-8"))
     return md_path, json_path, h
