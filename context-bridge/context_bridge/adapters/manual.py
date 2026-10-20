@@ -169,13 +169,13 @@ def write_manual_packet(
     }
     packet = scrub_obj(packet, root=True)
 
+    task = store.require_path_segment(ctx.current_task_id, "task ID")
     if out_dir is None:
         out_dir = store.project_dir(ctx.project) / "packets"
     out_dir.mkdir(parents=True, exist_ok=True)
-    stamp = utc_now_iso().replace(":", "").replace("-", "")
-    base = f"{ctx.current_task_id}-{worker}-packet-{stamp}"
-    json_path = out_dir / f"{base}.json"
-    md_path = out_dir / f"{base}.md"
+    base = store.unique_stem(out_dir, f"{task}-{worker}-packet")
+    json_path = store.path_inside(out_dir, f"{base}.json")
+    md_path = store.path_inside(out_dir, f"{base}.md")
 
     # CB-005: scrub ALL packet metadata surfaces (project/task/version/error class)
     sp = scrub_text(ctx.project)

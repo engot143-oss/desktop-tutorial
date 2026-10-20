@@ -9,6 +9,7 @@ from .transport import (
     anthropic_messages_url,
     env_first,
     post_json,
+    require_http_url,
 )
 
 
@@ -17,7 +18,7 @@ class AnthropicAdapter:
 
     name = "anthropic"
     require_key = True
-    default_model = "claude-3-5-haiku-latest"
+    default_model = "claude-haiku-4-5"
     default_base = "https://api.anthropic.com"
     key_envs = ("ANTHROPIC_API_KEY",)
     model_envs = ("ANTHROPIC_MODEL",)
@@ -37,6 +38,8 @@ class AnthropicAdapter:
         if base_url is None:
             base_url = env_first(self.base_envs) or self.default_base
         self.base_url = (base_url or "").strip() or None
+        if self.base_url:
+            self.base_url = require_http_url(self.base_url)
 
         if model is None:
             model = env_first(self.model_envs) or self.default_model

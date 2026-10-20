@@ -30,17 +30,26 @@ def build_glow_return_pack(
     task_id = (result.handoff_id if result else None) or ctx.current_task_id
     based_on = (result.based_on_version if result else "") or ""
 
-    # Explicit missing-evidence report
+    # Report missing evidence once. apply_result already records the flag
+    # on context; adding it again here counted the same result twice.
     if result is not None and not evidence:
-        flags = list(flags) + [
-            {
-                "type": "missing_evidence",
-                "at": utc_now_iso(),
-                "message": "Result has no verification evidence.",
-                "handoff_id": task_id,
-                "author": result.author if result else "",
-            }
-        ]
+        flag_task = result.handoff_id or ""
+        already = any(
+            isinstance(flag, dict)
+            and flag.get("type") == "missing_evidence"
+            and (flag.get("handoff_id") or "") == flag_task
+            for flag in flags
+        )
+        if not already:
+            flags = list(flags) + [
+                {
+                    "type": "missing_evidence",
+                    "at": utc_now_iso(),
+                    "message": "Result has no verification evidence.",
+                    "handoff_id": task_id,
+                    "author": result.author if result else "",
+                }
+            ]
 
     section_bodies: dict[str, str] = {}
     raw_markdown = ""
@@ -191,17 +200,17 @@ def write_glow_return_pack(
     out_dir: Path | None = None,
 ) -> tuple[Path, Path, dict[str, Any]]:
     pack = build_glow_return_pack(ctx, result)
+    tid = store.require_path_segment(str(pack.get("task_id") or "task"), "task ID")
     if out_dir is None:
         out_dir = store.project_dir(ctx.project) / "glow_returns"
     out_dir.mkdir(parents=True, exist_ok=True)
-    tid = pack.get("task_id") or "task"
-    stamp = utc_now_iso().replace(":", "").replace("-", "")
-    base = f"{tid}-glow-return-{stamp}"
-    md_path = out_dir / f"{base}.md"
-    json_path = out_dir / f"{base}.json"
-    md_path.write_text(render_glow_return_markdown(pack), encoding="utf-8")
+    base = store.unique_stem(out_dir, f"{tid}-glow-return")
+    md_path = store.path_inside(out_dir, f"{base}.md")
+    json_path = store.path_inside(out_dir, f"{base}.json")
+    rendered = render_glow_return_markdown(pack)
+    md_path.write_text(rendered, encoding="utf-8")
     store.write_json(json_path, pack)
-    # Convenience latest pointers
-    (out_dir / "latest.md").write_text(render_glow_return_markdown(pack), encoding="utf-8")
-    store.write_json(out_dir / "latest.json", pack)
+    # Convenience latest pointers (these names are fixed and meant to overwrite)
+    store.path_inside(out_dir, "latest.md").write_text(rendered, encoding="utf-8")
+    store.write_json(store.path_inside(out_dir, "latest.json"), pack)
     return md_path, json_path, pack

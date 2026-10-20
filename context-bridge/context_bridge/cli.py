@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -18,6 +19,24 @@ from .result_import import ResultImportError, apply_result, load_result
 from .route import route_task
 
 
+def _timeout_seconds(raw: str) -> float:
+    """argparse type: finite seconds. nan and inf are rejected."""
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid float value: '{raw}'") from exc
+    if not math.isfinite(value):
+        raise argparse.ArgumentTypeError(
+            f"timeout must be a finite number of seconds, not {raw}"
+        )
+    return value
+
+
+def _print_error(exc: BaseException) -> int:
+    print(f"ERROR: {exc}", file=sys.stderr)
+    return 1
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     ctx = store.ensure_project(args.project, repo_path=args.repo)
     print(f"Initialized project '{ctx.project}' at {store.project_dir(ctx.project)}")
@@ -29,6 +48,12 @@ def cmd_import_plan(args: argparse.Namespace) -> int:
     path = Path(args.file)
     if not path.exists():
         print(f"ERROR: file not found: {path}", file=sys.stderr)
+        return 1
+    # Reject a directory, binary, or oversize file before creating a project.
+    try:
+        store.read_text_file(path)
+    except store.InputError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     try:
         ctx = store.load_context(args.project)
@@ -282,12 +307,11 @@ def cmd_status(args: argparse.Namespace) -> int:
         ctx = store.load_context(args.project)
         print(json.dumps(ctx.to_dict(), indent=2))
         return 0
-    projects = store.list_projects()
+    projects = store.iter_project_contexts()
     if not projects:
         print("No projects. Run: cb init <name>")
         return 0
-    for p in projects:
-        ctx = store.load_context(p)
+    for ctx in projects:
         flags = len(ctx.flags)
         print(
             f"- {ctx.project}  task={ctx.current_task_id}  "
@@ -298,7 +322,11 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 def cmd_validate_plan(args: argparse.Namespace) -> int:
     path = Path(args.file)
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = store.read_text_file(path)
+    except store.InputError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     try:
         plan, meta, decisions, assumptions, assigned = parse_glow_plan_markdown(text)
     except PlanImportError as e:
@@ -446,7 +474,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     s.add_argument(
         "--timeout",
-        type=float,
+        type=_timeout_seconds,
         default=None,
         help="Per-call timeout in seconds (default 60, hard cap 120)",
     )
@@ -491,7 +519,27 @@ def main(argv: list[str] | None = None) -> int:
     _configure_stdio()
     parser = build_parser()
     args = parser.parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except store.ProjectNameError as exc:
+        return _print_error(exc)
+    except store.InputError as exc:
+        return _print_error(exc)
+    except FileNotFoundError as exc:
+        text = str(exc)
+        if "No project context" in text:
+            return _print_error(exc)
+        return _print_error(
+            f"file not found: {exc.filename or text}"
+        )
+    except IsADirectoryError as exc:
+        return _print_error(f"path is a directory: {exc.filename or exc}")
+    except UnicodeDecodeError:
+        return _print_error("file is not valid UTF-8")
+    except json.JSONDecodeError as exc:
+        return _print_error(f"invalid JSON: {exc.msg}")
+    except (PlanImportError, ResultImportError, ValueError) as exc:
+        return _print_error(exc)
 
 
 if __name__ == "__main__":
